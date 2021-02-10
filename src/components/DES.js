@@ -1,5 +1,6 @@
-import bitHandling from '../bit-handling-2';
+import {XOR, permutate, makeHalves} from '../bit-handling-2';
 const _ = require('lodash');
+//const bitHandling = require('../bit-handling-2');
 
 
 const sBoxes = getSBoxes();
@@ -58,10 +59,10 @@ function sBoxBlock({bits, sBoxes}){
 
  function round({L, R, i, keys, P, initialCallback, isInitialRound}){
      // Expand right size from 32 to 48 bits
-     const expandedR0 = bitHandling.permutate(R, expansionBox);
+     const expandedR0 = permutate(R, expansionBox);
 
      // XOR with sub-key i
-     const xorWithKey = bitHandling.XOR(expandedR0, keys[i]);
+     const xorWithKey = XOR(expandedR0, keys[i]);
 
      // S-boxes to shrink from 48 to 32 bits
      const afterSBox = sBoxBlock({
@@ -70,10 +71,10 @@ function sBoxBlock({bits, sBoxes}){
      });
 
      // Permutation
-     const permutatedBlock = bitHandling.permutate(afterSBox, P);
+     const permutatedBlock = permutate(afterSBox, P);
 
      // XOR with left side
-     const xorWithLeft = bitHandling.XOR(permutatedBlock, L);
+     const xorWithLeft = XOR(permutatedBlock, L);
 
      if (isInitialRound){
          console.log("first round");
@@ -88,7 +89,7 @@ function DESRounds({ input, keys, P, isFirstRound, initialCallback, halvesCallba
     const halves = [];
 
     // Does the 16 rounds of DES for a 64 bit block
-    let [L, R] = bitHandling.makeHalves(input);
+    let [L, R] = makeHalves(input);
     let isInitialRound = isFirstRound;
 
     // Add halves in each round for visualization purposes

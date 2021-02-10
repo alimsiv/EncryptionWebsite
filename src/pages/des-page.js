@@ -3,7 +3,6 @@ import React from 'react';
 import {Card, Form} from 'react-bootstrap';
 import Button from 'react-bootstrap/Button'
 import Collapsible from 'react-collapsible';
-import bitHandling from '../bit-handling-2';
 import {DESRounds, expansionBox, sBoxes} from '../components/DES';
 import BinaryDisplay from "../components/shared/binary-display";
 import PermutationTable from "../components/shared/permutation-table";
@@ -11,6 +10,10 @@ import Page from "../components/shared/page";
 import UTFDisplay from "../components/shared/utf-display";
 import Latex from 'react-latex';
 import Table from "react-bootstrap/Table";
+//import bitHandling from '../bit-handling-2';
+import {strToBits, bitsToStr, makeHalves, makePermutationTable, permutate, circularLeftShift, fromHalves} from '../bit-handling-2';
+
+
 
 /**
  * About Page Wrapper, relies on React Router for routing to here
@@ -62,15 +65,15 @@ class DesPage extends React.Component {
         const NUM_LHS = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1];
 
         const keys = [];
-        const initialPermutation = bitHandling.permutate(originalKey, PC1);
-        let [left, right] = bitHandling.makeHalves(initialPermutation);
+        const initialPermutation = permutate(originalKey, PC1);
+        let [left, right] = makeHalves(initialPermutation);
 
         for (let round = 0; round < N_ROUNDS; round++) {
             const shifts = NUM_LHS[round];
-            left = bitHandling.circularLeftShift(left, shifts);
-            right = bitHandling.circularLeftShift(right, shifts);
+            left = circularLeftShift(left, shifts);
+            right = circularLeftShift(right, shifts);
 
-            const newKey = bitHandling.permutate(bitHandling.fromHalves(left, right), PC2);
+            const newKey = permutate(fromHalves(left, right), PC2);
             keys.push(newKey);
         }
 
@@ -92,7 +95,7 @@ class DesPage extends React.Component {
         let isFirstRound = isSavedInState;
 
         for (let block of _.chunk(originalBinary, N_BITS).map(b => b.join(''))) {
-            const initialPermutation = bitHandling.permutate(block, IP);
+            const initialPermutation = permutate(block, IP);
 
             // 16 DES Rounds
             const afterDESRounds = DESRounds({
@@ -116,7 +119,7 @@ class DesPage extends React.Component {
 
             isFirstRound = false;
 
-            const finalPermutation = bitHandling.permutate(afterDESRounds, FP);
+            const finalPermutation = permutate(afterDESRounds, FP);
             output += finalPermutation;
         }
 
@@ -125,24 +128,24 @@ class DesPage extends React.Component {
 
     doEncryption() {
         // Generate the key
-        let binaryKey = bitHandling.strToBits(this.state.key.substring(0, 4));
+        let binaryKey = strToBits(this.state.key.substring(0, 4));
 
         const keys = this.generateKeys({
             originalKey: binaryKey,
-            PC1: bitHandling.makePermutationTable(64, 56),
-            PC2: bitHandling.makePermutationTable(56, 48),
+            PC1: makePermutationTable(64, 56),
+            PC2: makePermutationTable(56, 48),
         });
 
         // Padding the plaintext message so that the message is composed of 64 bit sections (4 characters sections)
         const paddedMessage = this.addPadding(this.state.plaintext);
 
         // Generate the binary message
-        const binaryMessage = bitHandling.strToBits(paddedMessage);
+        const binaryMessage = strToBits(paddedMessage);
 
         console.log(`Original Message: ${binaryMessage}`);
 
         const IP = [57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7, 56, 48, 40, 32, 24, 16, 8, 0, 58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6];
-        const P = bitHandling.makePermutationTable(32, 32);
+        const P = makePermutationTable(32, 32);
         const FP = [39, 7, 47, 15, 55, 23, 63, 31, 38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29, 36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27, 34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41, 9, 49, 17, 57, 25, 32, 0, 40, 8, 48, 16, 56, 24];
 
         // Generate encrypted message
@@ -160,7 +163,7 @@ class DesPage extends React.Component {
             encryptedBits: encryptedBinary,
             keys: keys,
             first64BitBlock: paddedMessage.substring(0, 4),
-            first64Bits: bitHandling.strToBits(paddedMessage.substring(0, 4)),
+            first64Bits: strToBits(paddedMessage.substring(0, 4)),
             IP: IP,
             permutationBox: P
         })
@@ -186,9 +189,9 @@ class DesPage extends React.Component {
 
         const decryptedMessage = this.bitsToHex(decryptedBinary);
         console.log(`Decrypted Message: ${decryptedMessage}`);
-        console.log(`Decrypted Message: ${bitHandling.bitsToStr(decryptedBinary)}`);
+        console.log(`Decrypted Message: ${bitsToStr(decryptedBinary)}`);
         this.setState({
-            decryptedCiphertext: bitHandling.bitsToStr(decryptedBinary),
+            decryptedCiphertext: bitsToStr(decryptedBinary),
         })
     }
 
@@ -247,7 +250,7 @@ class DesPage extends React.Component {
                             <br/>
                             <br/>
                             <BinaryDisplay label="Your key"
-                                           bits={bitHandling.strToBits(this.state.key.substring(0, 4))}/>
+                                           bits={strToBits(this.state.key.substring(0, 4))}/>
                         </div>
                     </div>
                     <div className="section">
@@ -498,17 +501,17 @@ class DesPage extends React.Component {
                             <tr>
                                 <td><span style={{ whiteSpace: 'nowrap' }}>UTF-8</span></td>
                                 <td>{this.state.plaintext}</td>
-                                <td>{bitHandling.bitsToStr(this.state.encryptedBits)}</td>
+                                <td>{bitsToStr(this.state.encryptedBits)}</td>
                             </tr>
                             <tr>
                                 <td>Hex</td>
-                                <td style={{ wordBreak: 'break-word' }}>{this.bitsToHex(bitHandling.strToBits(this.state.plaintext))}</td>
+                                <td style={{ wordBreak: 'break-word' }}>{this.bitsToHex(strToBits(this.state.plaintext))}</td>
                                 <td style={{ wordBreak: 'break-word' }}>{this.bitsToHex(this.state.encryptedBits)}</td>
                             </tr>
                             <tr>
                                 <td>Binary</td>
                                 <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', wordBreak: 'break-word' }}>
-                                    {bitHandling.strToBits(this.state.plaintext)}
+                                    {strToBits(this.state.plaintext)}
                                 </td>
                                 <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', wordBreak: 'break-word' }}>
                                     {this.state.encryptedBits}

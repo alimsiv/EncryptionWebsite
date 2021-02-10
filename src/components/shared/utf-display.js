@@ -1,13 +1,14 @@
 import _ from 'lodash';
 import React from 'react';
 import PropTypes from 'prop-types';
-import bitHandling from "../../bit-handling-2";
 import './utf-display.css';
+import {strToBits} from "../../bit-handling-2";
+
 
 const UTFDisplay = ({ ascii, columns }) => {
     if (!columns) columns = ascii.length;
     const letters = ascii.split('');
-    const bitCodes = _.chunk(bitHandling.strToBits(ascii).split(''), 16).map(bits => bits.join(''));
+    const bitCodes = _.chunk(strToBits(ascii).split(''), 16).map(bits => bits.join(''));
     const cells = _.zip(letters, bitCodes).map(([letter, bits]) => ({ letter, bits }));
     const rows = _.chunk(cells, columns);
 

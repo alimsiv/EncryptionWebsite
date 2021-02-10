@@ -182,7 +182,7 @@ function invertPermutationTable(table) {
     return inverted;
 }
 
-module.exports = {
+export {
     strToBits,
     bitsToStr,
     getBit,
