@@ -1,14 +1,12 @@
-# Computer Security 
-
-## Group 10
-
-CSDS 344: Computer Security
-
-Group 10: Alessandra Sivilotti, Alex Neyman, Lucas Pham, Lucas Popp, Jason Richards, and Jacob Engelbrecht
+# Encryption website for Vigenere, RSA, DES, and MD5
 
 December 12, 2020
 
-## Information on how to run
+
+## To view page on github
+https://alimsiv.github.io/EncryptionWebsite/#/
+
+## To run locally
 
 Install Node Package Manager 
 
